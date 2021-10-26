@@ -1,0 +1,25 @@
+- hosts: all
+  remote_user: ubuntu
+  tasks:
+
+    - name: create a marker in tmp filesystem ONLY if it is missing
+      command: "touch /tmp/a_rockstar_was_here"
+      args:
+        creates: "/tmp/a_rockstar_was_here"
+
+    - name: install nginx
+      become: yes
+      package:
+      args:
+        update_cache: yes
+        name: nginx
+        state: present
+
+    - name: customize greeting
+      become: yes
+      template:
+        src: nginx-greeting.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: 0644
