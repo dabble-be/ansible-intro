@@ -1,0 +1,8 @@
+11a12
+>     register: caddy
+17a19
+>     register: caddy
+21a24
+>     register: caddy
+24a28
+>     when: caddy.changed

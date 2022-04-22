@@ -1,0 +1,54 @@
+- hosts: localhost
+  vars:
+    name: vince
+  tasks:
+
+  - name: create a marker in tmp filesystem
+    command: "touch /tmp/a_rockstar_was_here"
+    args:
+      creates: "/tmp/a_rockstar_was_here"
+
+  - name: Create required directory structure
+    file:
+      path: ~/.local/bin
+      state: directory
+    register: caddy
+
+  - name: Download caddy binary
+    get_url:
+      url: https://github.com/caddyserver/caddy/releases/download/v2.4.6/caddy_2.4.6_linux_amd64.tar.gz
+      dest: /tmp/caddy.tar.gz
+      mode: 0600
+      checksum: sha256:690ad64538a39d555294cd09b26bb22ade36abc0e3212342f0ed151de51ec128
+    register: caddy
+
+  - name: Extract archive
+    unarchive:
+      src: /tmp/caddy.tar.gz
+      dest: ~/.local/bin/
+    register: caddy
+
+  - name: Run version command
+    command:
+      cmd: ~/.local/bin/caddy version
+    when: caddy.changed
+
+  - name: Ensures ~/.local/html/shell-http/{{ name }} dir exists
+    file:
+      path=~/.local/html/shell-http/{{ name }}
+      state=directory
+
+  - name: customize greeting
+    template:
+      src: caddy-greeting.html
+      dest: ~/.local/html/shell-http/{{ name }}/index.html
+      mode: 0644
+
+  - name: Configure Caddy
+    copy:
+      dest: ~/.local/html/Caddyfile
+      content: |
+              :8002 {
+                        file_server browse
+              }
+
