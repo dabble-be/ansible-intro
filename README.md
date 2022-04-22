@@ -617,3 +617,6 @@ Check the references below for more information and documentation.
 - [Caddy Server](https://caddyserver.com/)
 
 - [Asset attribution](.assets/README.md)
+
+###### Original version
+- https://github.com/dabble-be/ansible-intro/tree/0.2.3
