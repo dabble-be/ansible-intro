@@ -49,7 +49,6 @@ Let's start off with a simple demand for the instance we made in the previous ch
 cat <<EOF | tee playbook.yml
 - hosts: localhost
   tasks:
-
 EOF
 ```
 
@@ -57,8 +56,9 @@ This first part acts as a filter; The task list will be applied to all hosts in 
 
 ```sh
 cat <<EOF | tee --append playbook.yml
-    - name: create a marker in tmp filesystem
-      command: "touch /tmp/a_rockstar_was_here"
+
+  - name: create a marker in tmp filesystem
+    command: "touch /tmp/a_rockstar_was_here"
 EOF
 ```
 
@@ -129,9 +129,10 @@ I don't like it. The file has been _updated_, with new metadata no less. We shou
 `Ansible`'s command module allows to define extra arguments you can toggle to configure its behavior. To create the file only if it is missing, perform the following:
 
 ```sh
+
 cat <<EOF | tee --append playbook.yml
-      args:
-        creates: "/tmp/a_rockstar_was_here"
+    args:
+      creates: "/tmp/a_rockstar_was_here"
 EOF
 ```
 
@@ -214,6 +215,7 @@ Let's download a Caddy release into the `/tmp/` directory somewhere:
 
 ```sh
 cat <<EOF | tee --append playbook.yml
+
   - name: Download caddy binary
     get_url:
       url: https://github.com/caddyserver/caddy/releases/download/v2.4.6/caddy_2.4.6_linux_amd64.tar.gz
@@ -237,7 +239,7 @@ ansible-playbook playbook.yml -v
 
 _output:_
 
-```sh
+```log
 Using /etc/ansible/ansible.cfg as config file
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 
@@ -268,6 +270,7 @@ Nice. Now that we've successfully downloaded the required file, we can move on t
 
 ```sh
 cat <<EOF | tee --append playbook.yml
+
   - name: Extract archive
     unarchive:
       src: /tmp/caddy.tar.gz
@@ -277,13 +280,13 @@ EOF
 
 The [`unarchive module`](https://docs.ansible.com/ansible/latest/collections/ansible/builtin/unarchive_module.html) helps us extracting archives. In this case, we are extracting all files in the archive at `src` to `dest` `$HOME/.local/bin/`.
 
-```
+```sh
 ansible-playbook playbook.yml -v
 ```
 
 _output:_
 
-```sh
+```log
 Using /etc/ansible/ansible.cfg as config file
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 
@@ -320,19 +323,20 @@ Lastly, we want to test the binary, to see if it is functioning properly:
 ```sh
 
 cat <<EOF | tee --append playbook.yml
+
   - name: Run version command
     command:
       cmd: ~/.local/bin/caddy version
 EOF
 ```
 
-```
+```sh
 ansible-playbook playbook.yml -v
 ```
 
 _output:_
 
-```sh
+```log
 Using /etc/ansible/ansible.cfg as config file
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 
@@ -369,13 +373,13 @@ localhost                  : ok=6    changed=1    unreachable=0    failed=0    s
 
 Seems to be working just fine as is; However, when we execute the same playbook again we run into the following issue:
 
-```
+```sh
 ansible-playbook playbook.yml -v
 ```
 
 _output:_
 
-```sh
+```log
 [...]
 PLAY RECAP *********************************************************************************************************************************************************
 localhost                  : ok=6    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
@@ -384,26 +388,26 @@ localhost                  : ok=6    changed=1    unreachable=0    failed=0    s
 In our play recap, we can see that the last operation we added is always "changed". When we do run our several nodes, having many of these "false positives" would make us blind to actual changes.
 Let's add some conditionals that allow us to control when this resource is actually run. Apply the following patch:
 
-```
+```sh
 cat <<EOF | tee register.patch
-11a12
+12a13
 >     register: caddy
-17a19
+19a21
 >     register: caddy
-21a24
+24a27
 >     register: caddy
-24a28
+28a32
 >     when: caddy.changed
 EOF
 ```
 
-```
+```sh
 patch playbook.yml < register.patch
 ```
 
 _output:_
 
-```sh
+```log
 patching file playbook.yml
 ```
 
@@ -421,13 +425,13 @@ In our last resource we add a condition:
 
 `    when: caddy.changed` Tells Ansible that whenever the task(s) registered under name `"caddy"` are `.changed`, this resource needs to be triggered.
 
-```
+```sh
 ansible-playbook playbook.yml -v
 ```
 
 _output:_
 
-```sh
+```log
 Using /etc/ansible/ansible.cfg as config file
 [WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does not match 'all'
 
@@ -471,10 +475,10 @@ Before we can add a custom file we need to make sure target path exists:
 ```sh
 cat <<EOF | tee --append playbook.yml
 
-    - name: Ensures ~/.local/html/shell-http/{{ name }} dir exists
-      file:
-        path=~/.local/html/shell-http/{{ name }}
-        state=directory
+  - name: Ensures ~/.local/html/shell-http/{{ name }} dir exists
+    file:
+      path=~/.local/html/shell-http/{{ name }}
+      state=directory
 EOF
 ```
 
@@ -485,11 +489,11 @@ Time to customize the default landing page. We can do this by adding yet another
 ```sh
 cat <<EOF | tee --append playbook.yml
 
-    - name: customize greeting
-      template:
-        src: caddy-greeting.html
-        dest: ~/.local/html/shell-http/{{ name }}/index.html
-        mode: 0644
+  - name: customize greeting
+    template:
+      src: caddy-greeting.html
+      dest: ~/.local/html/shell-http/{{ name }}/index.html
+      mode: 0644
 EOF
 ```
 
@@ -521,14 +525,24 @@ EOF
 
 Will create the `caddy-greeting.html` file; With rudimentary contents and (again) something eye catching: `{{ name }}`. This is a placeholder for the `name` variable that will be set when generating the template.
 
-Now all we need is a way to set that `name` variable. Variables can be defined at all levels of your inventory and plays.
+Now all we need is a way to set that `name` variable. Variables can be defined at all levels of your inventory and plays. We'll set our variables at the host-level:
 
 ```sh
-cat <<EOF | tee --append playbook.yml
-
-  vars:
-    name: $STUDENT_ID
+cat <<EOF | tee vars.patch
+1a2,3
+>   vars:
+>     name: $STUDENT_ID
 EOF
+```
+
+```sh
+patch playbook.yml < vars.patch
+```
+
+_output:_
+
+```log
+patching file playbook.yml
 ```
 
 ### g. Starting Caddy
@@ -536,7 +550,7 @@ EOF
 Lastly, we want a simple configuration file for our web server. Generate the `Caddyfile` using the following command:
 
 ```sh
-cat <<EOF | tee --append playbook
+cat <<EOF | tee --append playbook.yml
 
   - name: Configure Caddy
     copy:
