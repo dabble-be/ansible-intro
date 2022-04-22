@@ -1,6 +1,6 @@
 # Ansible intro
 
-> When stopping the exercise (or extended pauses) , consider removing (Cloud) resources that might incur costs
+> When stopping the exercise (or extended pauses), consider removing (Cloud) resources that might incur costs
 
 - [Exercise Source code](https://github.com/dabble-be/ansible-intro)
 - [Documentation](https://docs.ansible.com/ansible/latest/)
@@ -18,6 +18,12 @@ This exercise has been constructed using the following software versions. These 
 | [jq](https://stedolan.github.io/jq/) | `jq-1.6` | Command line JSON processor |
 | [Caddy](https://caddyserver.com/) | `v2.4.6` | Caddy 2 is a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go |
 | [tee](https://www.gnu.org/software/coreutils/manual/html_node/Introduction.html) | `8.30` | The tee command copies standard input to standard output and also to any files given as arguments |
+
+## 1. Intro
+
+"Ansible intro" is a quick guided tour into using Configuration Management to provision a single machine. You will use common Ansible `modules` to achieve some simple tasks.
+
+By the end of this exercise, you'll have used Ansible to download, install and run a web server called [`Caddy`](https://caddyserver.com/). This web server will display a custom HTML page.
 
 ## 2. Introduction: `Ansible`
 
