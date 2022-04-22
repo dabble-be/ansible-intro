@@ -19,7 +19,7 @@ This exercise has been constructed using the following software versions. These 
 | [Caddy](https://caddyserver.com/) | `v2.4.6` | Caddy 2 is a powerful, enterprise-ready, open source web server with automatic HTTPS written in Go |
 | [tee](https://www.gnu.org/software/coreutils/manual/html_node/Introduction.html) | `8.30` | The tee command copies standard input to standard output and also to any files given as arguments |
 
-## 1. Intro
+## 1. Summary
 
 "Ansible intro" is a quick guided tour into using Configuration Management to provision a single machine. You will use common Ansible `modules` to achieve some simple tasks.
 
@@ -95,7 +95,7 @@ localhost                  : ok=2    changed=1    unreachable=0    failed=0    s
 
 There we go. Sweet sweet provisioning. If we login to the instance, the file has been created.
 
-### e. Idempotent
+### d. Idempotent
 
 Let's run the `Ansible` `playbook` again, see what happens:
 
@@ -161,7 +161,7 @@ localhost                  : ok=2    changed=0    unreachable=0    failed=0    s
 
 As we can see in the output: `"msg": "Did not run command since '/tmp/a_rockstar_was_here' exists",`. The `PLAY RECAP` confirms that all tasks where OK, and no resources where changed.
 
-### f. Installing Caddy
+### e. Installing Caddy
 
 If we want to serve a page generated using `Ansible`, we'll need a web server. This example shall use `caddy`: A powerful open source web server.
 
@@ -452,7 +452,7 @@ ownload/v2.4.6/caddy_2.4.6_linux_amd64.tar.gz"}
 TASK [Extract archive] *********************************************************************************************************************************************
 ok: [localhost] => {"changed": false, "dest": "/home/dabbler/.local/bin/", "gid": 1000, "group": "dabbler", "handler": "TgzArchive", "mode": "0755", "owner": "dabbl
 er", "size": 4096, "src": "/home/dabbler/.ansible/tmp/ansible-tmp-1650274416.5801642-170224085336612/source", "state": "directory", "uid": 1000}
-
+``
 TASK [Run version command] *****************************************************************************************************************************************
 skipping: [localhost] => {"changed": false, "skip_reason": "Conditional result was False"}
 
@@ -462,7 +462,7 @@ localhost                  : ok=5    changed=0    unreachable=0    failed=0    s
 
 Now our resource gets `skipped` instead of `changed`: That's more transparent.
 
-### g. Using the template module
+### f. Using the template module
 
 Last chapter, we downloaded the requirements to run the Caddy web server. Let's create some content for it to serve using Ansible; To test our skills.
 
@@ -530,6 +530,8 @@ cat <<EOF | tee --append playbook.yml
     name: $STUDENT_ID
 EOF
 ```
+
+### g. Starting Caddy
 
 Lastly, we want a simple configuration file for our web server. Generate the `Caddyfile` using the following command:
 
